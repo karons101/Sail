@@ -11,7 +11,7 @@ const USER_MUSIC_FILES_PATH = (uid) => `users/${uid}/myLibrary`;
 const PUBLIC_CHAT_PATH = 'publicChat';
 
 // --- API Configuration ---
-const YOUTUBE_API_KEY = 'YOUR_YOUTUBE_API_KEY';
+const YOUTUBE_API_KEY = 'AIzaSyD7bRJRc2tN7wbmXAdDEoOlAkmUuRNbH1M';
 
 // --- YouTube IFrame Player ---
 let youtubePlayer;
