@@ -34,14 +34,10 @@ function onPlayerReady(event) {
     console.log('YouTube player is ready.');
 }
 
-function showMessage(message) {
-    console.log("Message:", message);
-}
-
-// --- All logic inside ONE DOMContentLoaded ---
+// --- All App Logic Inside a Single DOMContentLoaded Listener ---
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- DOM queries (ALL TOGETHER AT THE TOP) ---
+    // --- DOM Queries (ALL TOGETHER AT THE TOP) ---
     const landingPage = document.getElementById('landing-page');
     const backgroundVideo = document.getElementById('backgroundVideo');
     const ctaGetStartedBtn = document.getElementById('cta-get-started');
@@ -58,8 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoPlayer = document.getElementById('videoPlayer');
     const publicFeedTab = document.getElementById('publicFeedTab');
     const profileTab = document.getElementById('profileTab');
+    const chatTab = document.getElementById('chatTab');
     const publicFeedView = document.getElementById('publicFeedView');
     const profileView = document.getElementById('profileView');
+    const chatView = document.getElementById('chatView');
     const avatar = document.getElementById('avatar');
     const avatarInput = document.getElementById('avatarInput');
     const changeAvatarBtn = document.getElementById('changeAvatarBtn');
@@ -67,18 +65,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const libraryUploadBtn = document.getElementById('libraryUploadBtn');
     const myLibraryList = document.getElementById('myLibraryList');
     const authModal = document.getElementById('authModal');
-    const modalContent = document.getElementById('modal-content');
     const closeModalBtn = document.getElementById('closeModalBtn');
     const signupEmailInput = document.getElementById('signupEmail');
     const signupPasswordInput = document.getElementById('signupPassword');
-    const signupBtn = document.getElementById('signupBtn');
+    const signupForm = document.getElementById('signupForm');
     const loginEmailInput = document.getElementById('loginEmail');
     const loginPasswordInput = document.getElementById('loginPassword');
-    const loginBtn = document.getElementById('loginBtn');
+    const loginForm = document.getElementById('loginForm');
     const signOutBtn = document.getElementById('signOutBtn');
     const authBtn = document.getElementById('authBtn');
-    const chatTab = document.getElementById('chatTab');
-    const chatView = document.getElementById('chatView');
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const sendChatBtn = document.getElementById('sendChatBtn');
@@ -88,11 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const youtubePlayerDiv = document.getElementById('youtubePlayer');
     const loginTab = document.getElementById('loginTab');
     const signupTab = document.getElementById('signupTab');
-    const loginForm = document.getElementById('loginForm');
-    const signupForm = document.getElementById('signupForm');
 
     // --- Firebase Initialization ---
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+    const firebaseConfig = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : null;
     let app, auth, db, storage, userId;
 
     if (firebaseConfig) {
@@ -101,182 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
             auth = getAuth(app);
             db = getFirestore(app);
             storage = getStorage(app);
-            setLogLevel('debug'); // Optional: for debugging Firebase operations
+            setLogLevel('debug');
             console.log("Firebase initialized successfully.");
-
-            // --- Authentication State Listener (MOVED INSIDE THE IF BLOCK) ---
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    userIdDisplay.textContent = userId;
-                    authBtn.style.display = 'none';
-                    signOutBtn.style.display = 'block';
-
-                    landingPage.style.display = 'none';
-                    mainAppView.style.display = 'flex';
-                    publicFeedView.style.display = 'flex';
-
-                    if (backgroundVideo) {
-                        backgroundVideo.pause();
-                    }
-
-                    console.log("User signed in with ID:", userId);
-
-                    // Fetch and set user avatar
-                    const userDocRef = doc(db, USER_DOC_PATH(userId));
-                    const userDocSnap = await getDoc(userDocRef);
-                    if (userDocSnap.exists()) {
-                        const userData = userDocSnap.data();
-                        if (userData.avatarUrl) {
-                            avatar.src = userData.avatarUrl;
-                        }
-                    }
-                    
-                    // Enable buttons for signed-in users
-                    publicUploadBtn.disabled = false;
-                    postMessageBtn.disabled = false;
-                    libraryUploadBtn.disabled = false;
-                    changeAvatarBtn.disabled = false;
-                    sendChatBtn.disabled = false;
-
-                    // Start listening to the user's private library
-                    onSnapshot(collection(db, USER_MUSIC_FILES_PATH(userId)), (querySnapshot) => {
-                        myLibraryList.innerHTML = '';
-                        querySnapshot.forEach(async (contentDoc) => {
-                            const contentData = contentDoc.data();
-                            const contentId = contentDoc.id;
-                            const contentDiv = document.createElement('div');
-                            contentDiv.className = 'content-item';
-                            contentDiv.dataset.docId = contentId;
-                            contentDiv.innerHTML = `
-                                <div class="content-title">${contentData.title}</div>
-                                <div class="content-author">Uploaded by: You</div>
-                                <div class="social-buttons">
-                                    <button class="play-btn" data-url="${contentData.url}" data-type="${contentData.fileType}">Play</button>
-                                </div>
-                            `;
-                            myLibraryList.prepend(contentDiv);
-                        });
-                    }, (error) => {
-                        console.error("Error listening to user's library:", error);
-                    });
-                    
-                } else {
-                    // User is signed out
-                    userId = null;
-                    userIdDisplay.textContent = 'Guest';
-                    authBtn.style.display = 'block';
-                    signOutBtn.style.display = 'none';
-
-                    landingPage.style.display = 'flex';
-                    mainAppView.style.display = 'none';
-                    
-                    if (backgroundVideo) {
-                        backgroundVideo.play();
-                    }
-
-                    // Disable buttons for guests
-                    publicUploadBtn.disabled = true;
-                    postMessageBtn.disabled = true;
-                    libraryUploadBtn.disabled = true;
-                    changeAvatarBtn.disabled = true;
-                    sendChatBtn.disabled = true;
-                    myLibraryList.innerHTML = '<p>Login to see your private content library.</p>';
-                }
-
-                // The following listeners are global and should react to user state changes
-                onSnapshot(collection(db, PUBLIC_FEED_PATH), (querySnapshot) => {
-                    const messageList = document.getElementById('messageList');
-                    messageList.innerHTML = '';
-                    querySnapshot.forEach((doc) => {
-                        const messageData = doc.data();
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = 'message';
-                        messageDiv.innerHTML = `
-                            <div class="message-author">${messageData.authorId.substring(0, 8)}...</div>
-                            <div class="message-content">${messageData.content}</div>
-                        `;
-                        messageList.prepend(messageDiv);
-                    });
-                }, (error) => {
-                    console.error("Error listening to public feed:", error);
-                });
-
-                function renderPublicContent(contentArray) {
-                    contentList.innerHTML = '';
-                    if (contentArray.length === 0) {
-                        contentList.innerHTML = '<p>No content found.</p>';
-                        return;
-                    }
-
-                    contentArray.forEach(async (contentDoc) => {
-                        const contentData = contentDoc.data();
-                        const contentId = contentDoc.id;
-                        let likes = contentData.likes || [];
-                        const isLiked = userId && likes.includes(userId);
-                        const contentDiv = document.createElement('div');
-                        contentDiv.className = 'content-item';
-                        contentDiv.dataset.docId = contentId;
-                        contentDiv.innerHTML = `
-                            <div class="content-title">${contentData.title}</div>
-                            <div class="content-author">Uploaded by: ${contentData.authorId.substring(0, 8)}...</div>
-                            <div class="social-buttons">
-                                <button class="play-btn" data-url="${contentData.url}" data-type="${contentData.fileType}">Play</button>
-                                <button class="like-btn" data-doc-id="${contentId}" ${!userId ? 'disabled' : ''}>${isLiked ? 'Liked' : 'Like'} (<span class="like-count">${likes.length}</span>)</button>
-                            </div>
-                            <div class="comments-section" id="comments-section-${contentId}">
-                                <h4>Comments</h4>
-                                <div class="comment-list"></div>
-                                <div class="comment-form">
-                                    <input type="text" placeholder="Add a comment..." data-doc-id="${contentId}">
-                                    <button class="comment-btn" ${!userId ? 'disabled' : ''}>Post</button>
-                                </div>
-                            </div>
-                        `;
-                        contentList.prepend(contentDiv);
-
-                        onSnapshot(collection(db, PUBLIC_MUSIC_FILES_PATH, contentId, 'comments'), (commentSnapshot) => {
-                            const commentListDiv = document.querySelector(`#comments-section-${contentId} .comment-list`);
-                            if (commentListDiv) {
-                                commentListDiv.innerHTML = '';
-                                commentSnapshot.forEach((commentDoc) => {
-                                    const commentData = commentDoc.data();
-                                    const commentDiv = document.createElement('div');
-                                    commentDiv.className = 'comment-item';
-                                    commentDiv.innerHTML = `
-                                        <span class="comment-author">${commentData.authorId.substring(0, 8)}...:</span>
-                                        ${commentData.content}
-                                    `;
-                                    commentListDiv.prepend(commentDiv);
-                                });
-                            }
-                        });
-                    });
-                }
-
-                onSnapshot(collection(db, PUBLIC_MUSIC_FILES_PATH), (querySnapshot) => {
-                    renderPublicContent(querySnapshot.docs);
-                }, (error) => {
-                    console.error("Error listening to public content feed:", error);
-                });
-
-                onSnapshot(collection(db, PUBLIC_CHAT_PATH), (querySnapshot) => {
-                    chatMessages.innerHTML = '';
-                    querySnapshot.forEach((doc) => {
-                        const messageData = doc.data();
-                        const messageDiv = document.createElement('div');
-                        messageDiv.className = 'chat-message';
-                        messageDiv.innerHTML = `
-                            <span class="chat-author">${messageData.authorId.substring(0, 8)}...:</span>
-                            <span class="chat-content">${messageData.content}</span>
-                        `;
-                        chatMessages.prepend(messageDiv);
-                    });
-                }, (error) => {
-                    console.error("Error listening to public chat:", error);
-                });
-            });
-
         } catch (error) {
             console.error("Firebase initialization failed:", error);
             userIdDisplay.textContent = 'Config Error';
@@ -285,6 +104,216 @@ document.addEventListener('DOMContentLoaded', () => {
         userIdDisplay.textContent = 'Config Error';
         console.error("Firebase configuration is missing.");
     }
+
+    // --- Core Functions ---
+    function showView(view) {
+        // Hide all views first
+        [publicFeedView, profileView, chatView].forEach(v => v.style.display = 'none');
+        // Remove active class from all tabs
+        [publicFeedTab, profileTab, chatTab].forEach(t => t.classList.remove('active'));
+
+        // Show the selected view and set the active tab
+        if (view === 'feed') {
+            publicFeedView.style.display = 'block';
+            publicFeedTab.classList.add('active');
+        } else if (view === 'profile') {
+            profileView.style.display = 'block';
+            profileTab.classList.add('active');
+        } else if (view === 'chat') {
+            chatView.style.display = 'block';
+            chatTab.classList.add('active');
+        }
+    }
+
+    const showModal = () => {
+        authModal.classList.add('show');
+    };
+
+    const hideModal = () => {
+        authModal.classList.remove('show');
+    };
+
+    function switchAuthTab(tab) {
+        if (tab === 'login') {
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+            loginTab.classList.add('bg-yellow-400', 'text-gray-900');
+            loginTab.classList.remove('bg-gray-700', 'text-gray-400');
+            signupTab.classList.add('bg-gray-700', 'text-gray-400');
+            signupTab.classList.remove('bg-yellow-400', 'text-gray-900');
+        } else {
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            signupTab.classList.add('bg-yellow-400', 'text-gray-900');
+            signupTab.classList.remove('bg-gray-700', 'text-gray-400');
+            loginTab.classList.add('bg-gray-700', 'text-gray-400');
+            loginTab.classList.remove('bg-yellow-400', 'text-gray-900');
+        }
+    }
+
+    function renderPublicContent(contentArray) {
+        contentList.innerHTML = '';
+        if (contentArray.length === 0) {
+            contentList.innerHTML = '<p>No content found.</p>';
+            return;
+        }
+
+        contentArray.forEach(async (contentDoc) => {
+            const contentData = contentDoc.data();
+            const contentId = contentDoc.id;
+            let likes = contentData.likes || [];
+            const isLiked = userId && likes.includes(userId);
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'content-item';
+            contentDiv.dataset.docId = contentId;
+            contentDiv.innerHTML = `
+                <div class="content-title">${contentData.title}</div>
+                <div class="content-author">Uploaded by: ${contentData.authorId.substring(0, 8)}...</div>
+                <div class="social-buttons">
+                    <button class="play-btn" data-url="${contentData.url}" data-type="${contentData.fileType}">Play</button>
+                    <button class="like-btn" data-doc-id="${contentId}" ${!userId ? 'disabled' : ''}>${isLiked ? 'Liked' : 'Like'} (<span class="like-count">${likes.length}</span>)</button>
+                </div>
+                <div class="comments-section" id="comments-section-${contentId}">
+                    <h4>Comments</h4>
+                    <div class="comment-list"></div>
+                    <div class="comment-form">
+                        <input type="text" placeholder="Add a comment..." data-doc-id="${contentId}">
+                        <button class="comment-btn" ${!userId ? 'disabled' : ''}>Post</button>
+                    </div>
+                </div>
+            `;
+            contentList.prepend(contentDiv);
+
+            onSnapshot(collection(db, PUBLIC_MUSIC_FILES_PATH, contentId, 'comments'), (commentSnapshot) => {
+                const commentListDiv = document.querySelector(`#comments-section-${contentId} .comment-list`);
+                if (commentListDiv) {
+                    commentListDiv.innerHTML = '';
+                    commentSnapshot.forEach((commentDoc) => {
+                        const commentData = commentDoc.data();
+                        const commentDiv = document.createElement('div');
+                        commentDiv.className = 'comment-item';
+                        commentDiv.innerHTML = `
+                            <span class="comment-author">${commentData.authorId.substring(0, 8)}...:</span>
+                            ${commentData.content}
+                        `;
+                        commentListDiv.prepend(commentDiv);
+                    });
+                }
+            });
+        });
+    }
+
+    // --- Main Authentication State Listener ---
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            userId = user.uid;
+            userIdDisplay.textContent = userId;
+            authBtn.style.display = 'none';
+            signOutBtn.style.display = 'block';
+            landingPage.style.display = 'none';
+            mainAppView.style.display = 'flex';
+
+            if (backgroundVideo) {
+                backgroundVideo.pause();
+            }
+
+            console.log("User signed in with ID:", userId);
+            showView('feed');
+
+            const userDocRef = doc(db, USER_DOC_PATH(userId));
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists() && userDocSnap.data().avatarUrl) {
+                avatar.src = userDocSnap.data().avatarUrl;
+            } else {
+                avatar.src = 'https://i.ibb.co/Ctnz36D/avatar-placeholder.png';
+            }
+
+            publicUploadBtn.disabled = false;
+            postMessageBtn.disabled = false;
+            libraryUploadBtn.disabled = false;
+            changeAvatarBtn.disabled = false;
+            sendChatBtn.disabled = false;
+
+            onSnapshot(collection(db, USER_MUSIC_FILES_PATH(userId)), (querySnapshot) => {
+                myLibraryList.innerHTML = '';
+                if (querySnapshot.empty) {
+                    myLibraryList.innerHTML = '<p>Your library is empty. Upload some content!</p>';
+                }
+                querySnapshot.forEach(async (contentDoc) => {
+                    const contentData = contentDoc.data();
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'content-item';
+                    contentDiv.innerHTML = `
+                        <div class="content-title">${contentData.title}</div>
+                        <div class="content-author">Uploaded by: You</div>
+                        <div class="social-buttons">
+                            <button class="play-btn" data-url="${contentData.url}" data-type="${contentData.fileType}">Play</button>
+                        </div>
+                    `;
+                    myLibraryList.prepend(contentDiv);
+                });
+            }, (error) => {
+                console.error("Error listening to user's library:", error);
+            });
+        } else {
+            userId = null;
+            userIdDisplay.textContent = 'Guest';
+            authBtn.style.display = 'block';
+            signOutBtn.style.display = 'none';
+            landingPage.style.display = 'flex';
+            mainAppView.style.display = 'none';
+            if (backgroundVideo) {
+                backgroundVideo.play();
+            }
+
+            publicUploadBtn.disabled = true;
+            postMessageBtn.disabled = true;
+            libraryUploadBtn.disabled = true;
+            changeAvatarBtn.disabled = true;
+            sendChatBtn.disabled = true;
+            myLibraryList.innerHTML = '<p>Login to see your private content library.</p>';
+        }
+
+        // --- Public Feed & Chat Listeners (always active) ---
+        onSnapshot(collection(db, PUBLIC_FEED_PATH), (querySnapshot) => {
+            const messageList = document.getElementById('messageList');
+            messageList.innerHTML = '';
+            querySnapshot.forEach((doc) => {
+                const messageData = doc.data();
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `
+                    <div class="message-author">${messageData.authorId.substring(0, 8)}...</div>
+                    <div class="message-content">${messageData.content}</div>
+                `;
+                messageList.prepend(messageDiv);
+            });
+        }, (error) => {
+            console.error("Error listening to public feed:", error);
+        });
+
+        onSnapshot(collection(db, PUBLIC_MUSIC_FILES_PATH), (querySnapshot) => {
+            renderPublicContent(querySnapshot.docs);
+        }, (error) => {
+            console.error("Error listening to public content feed:", error);
+        });
+
+        onSnapshot(collection(db, PUBLIC_CHAT_PATH), (querySnapshot) => {
+            chatMessages.innerHTML = '';
+            querySnapshot.forEach((doc) => {
+                const messageData = doc.data();
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'chat-message';
+                messageDiv.innerHTML = `
+                    <span class="chat-author">${messageData.authorId.substring(0, 8)}...:</span>
+                    <span class="chat-content">${messageData.content}</span>
+                `;
+                chatMessages.prepend(messageDiv);
+            });
+        }, (error) => {
+            console.error("Error listening to public chat:", error);
+        });
+    });
 
     // --- Video Playlist Logic ---
     const videoPlaylist = [
@@ -313,50 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playNextVideo();
     }
     
-    // --- Modal Logic ---
-    const showModal = () => {
-        authModal.classList.remove('hidden');
-        authModal.classList.add('flex', 'modal-enter-active');
-        modalContent.classList.add('modal-content-enter-active');
-    };
-    
-    const hideModal = () => {
-        authModal.classList.remove('modal-enter-active');
-        modalContent.classList.remove('modal-content-enter-active');
-        authModal.addEventListener('transitionend', () => {
-            authModal.classList.add('hidden');
-        }, { once: true });
-    };
-
-    // --- Tab Switching Logic for Auth Modal ---
-    let activeTab = 'login';
-    if (loginTab) loginTab.classList.add('bg-yellow-400', 'text-gray-900');
-    if (signupTab) signupTab.classList.add('bg-gray-700', 'text-gray-400');
-    if (loginForm) loginForm.classList.remove('hidden');
-    if (signupForm) signupForm.classList.add('hidden');
-
-    function switchAuthTab(tab) {
-        if (tab === activeTab) return;
-        activeTab = tab;
-        if (tab === 'login') {
-            loginForm.classList.remove('hidden');
-            signupForm.classList.add('hidden');
-            loginTab.classList.add('bg-yellow-400', 'text-gray-900');
-            loginTab.classList.remove('bg-gray-700', 'text-gray-400');
-            signupTab.classList.add('bg-gray-700', 'text-gray-400');
-            signupTab.classList.remove('bg-yellow-400', 'text-gray-900');
-        } else {
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-            signupTab.classList.add('bg-yellow-400', 'text-gray-900');
-            signupTab.classList.remove('bg-gray-700', 'text-gray-400');
-            loginTab.classList.add('bg-gray-700', 'text-gray-400');
-            loginTab.classList.remove('bg-yellow-400', 'text-gray-900');
-        }
-    }
-    
-    // --- Event Listeners (ALL TOGETHER AT THE BOTTOM) ---
-    // 'Get Started' button: triggers anonymous sign-in
+    // --- All Event Listeners ---
     if (ctaGetStartedBtn) {
         ctaGetStartedBtn.addEventListener('click', async () => {
             if (!auth) {
@@ -365,22 +351,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             try {
                 await signInAnonymously(auth);
-                console.log("Get Started button: Signed in anonymously.");
+                console.log("Signed in anonymously.");
             } catch (error) {
-                console.error("Get Started button: Authentication failed:", error);
+                console.error("Authentication failed:", error);
                 showModal();
             }
         });
     }
 
-    // 'Sign Up' form submission
+    if (authBtn) authBtn.addEventListener('click', showModal);
+    if (closeModalBtn) closeModalBtn.addEventListener('click', hideModal);
+    if (window) window.addEventListener('click', (event) => {
+        if (event.target === authModal) {
+            hideModal();
+        }
+    });
+    
+    if (loginTab) loginTab.addEventListener('click', () => switchAuthTab('login'));
+    if (signupTab) signupTab.addEventListener('click', () => switchAuthTab('signup'));
+
     if (signupForm) {
         signupForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            if (!auth) {
-                console.error("Firebase is not initialized.");
-                return;
-            }
+            if (!auth) return;
             const email = signupEmailInput.value;
             const password = signupPasswordInput.value;
             try {
@@ -392,14 +385,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 'Login' form submission
     if (loginForm) {
         loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            if (!auth) {
-                console.error("Firebase is not initialized.");
-                return;
-            }
+            if (!auth) return;
             const email = loginEmailInput.value;
             const password = loginPasswordInput.value;
             try {
@@ -411,29 +400,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // 'Sign Out' button
-    if (signOutBtn) {
-        signOutBtn.addEventListener('click', async () => {
-            if (!auth) return;
-            await signOut(auth);
-        });
-    }
-    
-    // 'Login/Signup' button in main app view
-    if (authBtn) {
-        authBtn.addEventListener('click', showModal);
-    }
-    
-    // 'Close Modal' button
-    if (closeModalBtn) {
-        closeModalBtn.addEventListener('click', hideModal);
-    }
-    
-    // Tab switching for modal
-    if (loginTab) loginTab.addEventListener('click', () => switchAuthTab('login'));
-    if (signupTab) signupTab.addEventListener('click', () => switchAuthTab('signup'));
+    if (signOutBtn) signOutBtn.addEventListener('click', async () => {
+        if (!auth) return;
+        await signOut(auth);
+    });
 
-    // --- Public Feed Event Listeners ---
+    if (publicFeedTab) publicFeedTab.addEventListener('click', () => showView('feed'));
+    if (profileTab) profileTab.addEventListener('click', () => showView('profile'));
+    if (chatTab) chatTab.addEventListener('click', () => showView('chat'));
+
     if (postMessageBtn) {
         postMessageBtn.addEventListener('click', async () => {
             if (!userId) return;
@@ -446,7 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         createdAt: serverTimestamp()
                     });
                     messageInput.value = '';
-                    console.log("Message posted successfully.");
                 } catch (e) {
                     console.error("Error adding message:", e);
                 }
@@ -510,7 +484,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('like-btn')) {
                 if (!userId) return;
                 const docId = e.target.dataset.docId;
-                const likeBtn = e.target;
                 const docRef = doc(db, PUBLIC_MUSIC_FILES_PATH, docId);
                 const docSnap = await getDoc(docRef);
 
@@ -546,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Profile View Event Listeners ---
     if (changeAvatarBtn) {
         changeAvatarBtn.addEventListener('click', () => {
             avatarInput.click();
@@ -602,7 +574,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Public Chat Event Listeners ---
     if (sendChatBtn) {
         sendChatBtn.addEventListener('click', async () => {
             if (!userId) return;
@@ -622,12 +593,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- YouTube Search and Playback ---
     if (youtubeSearchBtn) {
         youtubeSearchBtn.addEventListener('click', async () => {
             const query = youtubeSearchInput.value.trim();
             if (!query) return;
-
             try {
                 const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}&maxResults=10`);
                 if (!response.ok) {
@@ -639,7 +608,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const videoId = item.id.videoId;
                     const title = item.snippet.title;
                     const thumbnail = item.snippet.thumbnails.default.url;
-
                     const resultDiv = document.createElement('div');
                     resultDiv.className = 'search-result-item';
                     resultDiv.dataset.videoId = videoId;
@@ -665,10 +633,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item) {
                 const videoId = item.dataset.videoId;
                 const title = item.querySelector('.search-result-title').textContent;
-
                 playerContainer.style.display = 'none';
                 youtubePlayerDiv.style.display = 'block';
-
                 nowPlayingTitle.textContent = `Now Playing: ${title}`;
                 if (youtubePlayer && youtubePlayer.loadVideoById) {
                     youtubePlayer.loadVideoById(videoId);
@@ -678,52 +644,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    // --- Tab Switching Logic ---
-    function switchMainTab(viewId) {
-        const views = [publicFeedView, profileView, chatView];
-        views.forEach(view => {
-            view.style.display = 'none';
-        });
-        document.getElementById(viewId).style.display = 'flex';
-
-        const tabs = [publicFeedTab, profileTab, chatTab];
-        tabs.forEach(tab => {
-            tab.classList.remove('active');
-        });
-        document.getElementById(`${viewId.replace('View', 'Tab')}`).classList.add('active');
-    }
-
-    if (publicFeedTab) publicFeedTab.addEventListener('click', () => switchMainTab('publicFeedView'));
-    if (profileTab) profileTab.addEventListener('click', () => switchMainTab('profileView'));
-    if (chatTab) chatTab.addEventListener('click', () => switchMainTab('chatView'));
 });
-
-
-
-
-// Get the modal
-var authModal = document.getElementById("authModal");
-
-// Get the button that opens the modal
-var getStartedBtn = document.getElementById("cta-get-started");
-
-// Get the close button inside the modal
-var closeModalBtn = document.getElementById("closeModalBtn");
-
-// When the user clicks the "Get Started" button, show the modal
-getStartedBtn.onclick = function() {
-  authModal.classList.add("show");
-}
-
-// When the user clicks on the close button (x), hide the modal
-closeModalBtn.onclick = function() {
-  authModal.classList.remove("show");
-}
-
-// When the user clicks anywhere outside of the modal, close it
-window.onclick = function(event) {
-  if (event.target == authModal) {
-    authModal.classList.remove("show");
-  }
-}

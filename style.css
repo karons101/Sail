@@ -90,6 +90,14 @@ h1 {
     background: var(--element-dark);
 }
 
+/* New: Content Container to fix scattered layout */
+.content-container {
+    max-width: 960px; /* Adjust this width as needed */
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
 .tabs {
     display: flex;
     gap: 10px;
@@ -269,18 +277,6 @@ button:hover {
     display: none;
 }
 
-
-/*
-#authModal {
-   display: flex;
-
-}
-
-#authModal.hidden {
-    display: none;
-
-}*/
-
 /* --- Modal Overlay Styles --- */
 #authModal {
     position: fixed;
@@ -299,4 +295,3 @@ button:hover {
 #authModal.show {
     display: flex; /* Show the modal when this class is added */
 }
-
