@@ -265,9 +265,34 @@ button:hover {
     display: none;
 }
 
+
+/*
 #authModal {
-    display: flex;
+   display: flex;
+
 }
+
 #authModal.hidden {
     display: none;
+
+}*/
+
+/* --- Modal Overlay Styles --- */
+#authModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+    z-index: 1000; /* Ensure it is on top of other content */
+    display: none; /* Hide by default */
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
 }
+
+#authModal.show {
+    display: flex; /* Show the modal when this class is added */
+}
+

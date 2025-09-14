@@ -698,3 +698,32 @@ document.addEventListener('DOMContentLoaded', () => {
     if (profileTab) profileTab.addEventListener('click', () => switchMainTab('profileView'));
     if (chatTab) chatTab.addEventListener('click', () => switchMainTab('chatView'));
 });
+
+
+
+
+// Get the modal
+var authModal = document.getElementById("authModal");
+
+// Get the button that opens the modal
+var getStartedBtn = document.getElementById("cta-get-started");
+
+// Get the close button inside the modal
+var closeModalBtn = document.getElementById("closeModalBtn");
+
+// When the user clicks the "Get Started" button, show the modal
+getStartedBtn.onclick = function() {
+  authModal.classList.add("show");
+}
+
+// When the user clicks on the close button (x), hide the modal
+closeModalBtn.onclick = function() {
+  authModal.classList.remove("show");
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+  if (event.target == authModal) {
+    authModal.classList.remove("show");
+  }
+}
