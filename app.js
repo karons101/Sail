@@ -1,7 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, addDoc, onSnapshot, collection, setLogLevel, serverTimestamp, query, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+// --- All Firebase SDK imports have been removed. The SDK is now loaded via /__/firebase/init.js ---
 
 // --- Database Path Constants ---
 const USER_DOC_PATH = (uid) => `users/${uid}`;
@@ -84,17 +81,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginTab = document.getElementById('loginTab');
     const signupTab = document.getElementById('signupTab');
 
-    // --- Firebase Initialization ---
+    // --- Firebase Initialization (UPDATED) ---
+    // The `firebase` object is now provided by the script from Firebase Hosting.
     let app, auth, db, storage, userId;
 
-    // This section is now much cleaner because the config is loaded from /__/firebase/init.js
-    // which your updated index.html now links to.
     try {
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        storage = getStorage(app);
-        setLogLevel('debug');
+        app = firebase.app();
+        auth = firebase.auth();
+        db = firebase.firestore();
+        storage = firebase.storage();
+        
+        // This makes sure the Firestore functions work properly.
+        const { onSnapshot, collection, addDoc, serverTimestamp, query, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } = firebase.firestore;
+        const { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInAnonymously } = firebase.auth;
+        const { ref, uploadBytes, getDownloadURL } = firebase.storage;
+        
         console.log("Firebase initialized successfully.");
     } catch (error) {
         console.error("Firebase initialization failed:", error);
@@ -346,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             try {
-                await signInAnonymously(auth);
+                await auth.signInAnonymously();
                 console.log("Signed in anonymously.");
             } catch (error) {
                 console.error("Authentication failed:", error);
@@ -373,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = signupEmailInput.value;
             const password = signupPasswordInput.value;
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
+                await auth.createUserWithEmailAndPassword(email, password);
                 hideModal();
             } catch (error) {
                 console.error('Signup failed:', error);
@@ -388,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const email = loginEmailInput.value;
             const password = loginPasswordInput.value;
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                await auth.signInWithEmailAndPassword(email, password);
                 hideModal();
             } catch (error) {
                 console.error('Login failed:', error);
@@ -398,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (signOutBtn) signOutBtn.addEventListener('click', async () => {
         if (!auth) return;
-        await signOut(auth);
+        await auth.signOut();
     });
 
     if (publicFeedTab) publicFeedTab.addEventListener('click', () => showView('feed'));
@@ -411,10 +412,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const message = messageInput.value.trim();
             if (message.length > 0) {
                 try {
-                    await addDoc(collection(db, PUBLIC_FEED_PATH), {
+                    await db.collection(PUBLIC_FEED_PATH).add({
                         authorId: userId,
                         content: message,
-                        createdAt: serverTimestamp()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     messageInput.value = '';
                 } catch (e) {
@@ -431,18 +432,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file) return;
 
             publicUploadBtn.disabled = true;
-            const storageRef = ref(storage, `${PUBLIC_MUSIC_FILES_PATH}/${userId}/${file.name}`);
+            const storageRef = storage.ref(`${PUBLIC_MUSIC_FILES_PATH}/${userId}/${file.name}`);
 
             try {
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                await addDoc(collection(db, PUBLIC_MUSIC_FILES_PATH), {
+                await storageRef.put(file);
+                const downloadURL = await storageRef.getDownloadURL();
+                await db.collection(PUBLIC_MUSIC_FILES_PATH).add({
                     title: file.name,
                     url: downloadURL,
                     fileType: file.type.split('/')[0],
                     authorId: userId,
                     likes: [],
-                    createdAt: serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 console.log('File uploaded and metadata saved to Firestore!');
             } catch (error) {
@@ -480,15 +481,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('like-btn')) {
                 if (!userId) return;
                 const docId = e.target.dataset.docId;
-                const docRef = doc(db, PUBLIC_MUSIC_FILES_PATH, docId);
-                const docSnap = await getDoc(docRef);
+                const docRef = db.collection(PUBLIC_MUSIC_FILES_PATH).doc(docId);
+                const docSnap = await docRef.get();
 
-                if (docSnap.exists()) {
+                if (docSnap.exists) {
                     const likes = docSnap.data().likes || [];
                     if (likes.includes(userId)) {
-                        await updateDoc(docRef, { likes: arrayRemove(userId) });
+                        await docRef.update({ likes: firebase.firestore.FieldValue.arrayRemove(userId) });
                     } else {
-                        await updateDoc(docRef, { likes: arrayUnion(userId) });
+                        await docRef.update({ likes: firebase.firestore.FieldValue.arrayUnion(userId) });
                     }
                 }
             }
@@ -501,10 +502,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (commentText) {
                     try {
-                        await addDoc(collection(db, PUBLIC_MUSIC_FILES_PATH, docId, 'comments'), {
+                        await db.collection(PUBLIC_MUSIC_FILES_PATH).doc(docId).collection('comments').add({
                             authorId: userId,
                             content: commentText,
-                            createdAt: serverTimestamp()
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                         commentInput.value = '';
                     } catch (e) {
@@ -527,13 +528,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
 
-            const storageRef = ref(storage, `avatars/${userId}`);
+            const storageRef = storage.ref(`avatars/${userId}`);
 
             try {
-                await uploadBytes(storageRef, file);
-                const avatarUrl = await getDownloadURL(storageRef);
-                const userDocRef = doc(db, USER_DOC_PATH(userId));
-                await setDoc(userDocRef, { avatarUrl: avatarUrl }, { merge: true });
+                await storageRef.put(file);
+                const avatarUrl = await storageRef.getDownloadURL();
+                const userDocRef = db.collection('users').doc(userId);
+                await userDocRef.set({ avatarUrl: avatarUrl }, { merge: true });
                 avatar.src = avatarUrl;
                 console.log("Avatar updated successfully.");
             } catch (error) {
@@ -549,17 +550,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!file) return;
 
             libraryUploadBtn.disabled = true;
-            const storageRef = ref(storage, `${USER_MUSIC_FILES_PATH(userId)}/${file.name}`);
+            const storageRef = storage.ref(`${USER_MUSIC_FILES_PATH(userId)}/${file.name}`);
 
             try {
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                await addDoc(collection(db, USER_MUSIC_FILES_PATH(userId)), {
+                await storageRef.put(file);
+                const downloadURL = await storageRef.getDownloadURL();
+                await db.collection(USER_MUSIC_FILES_PATH(userId)).add({
                     title: file.name,
                     url: downloadURL,
                     fileType: file.type.split('/')[0],
                     authorId: userId,
-                    createdAt: serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 console.log('File uploaded to library and metadata saved to Firestore!');
             } catch (error) {
@@ -576,10 +577,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const message = chatInput.value.trim();
             if (message) {
                 try {
-                    await addDoc(collection(db, PUBLIC_CHAT_PATH), {
+                    await db.collection(PUBLIC_CHAT_PATH).add({
                         authorId: userId,
                         content: message,
-                        createdAt: serverTimestamp()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     chatInput.value = '';
                 } catch (e) {
