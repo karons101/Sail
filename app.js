@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupTab = document.getElementById('signupTab');
 
     // --- Firebase Initialization (UPDATED) ---
-    // The `firebase` object is now provided by the script from Firebase Hosting.
+    // The `firebase` object is now provided by the scripts from Firebase Hosting.
     let app, auth, db, storage, userId;
 
     try {
@@ -90,11 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
         auth = firebase.auth();
         db = firebase.firestore();
         storage = firebase.storage();
-        
-        // This makes sure the Firestore functions work properly.
-        const { onSnapshot, collection, addDoc, serverTimestamp, query, doc, updateDoc, arrayUnion, arrayRemove, getDoc, setDoc } = firebase.firestore;
-        const { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInAnonymously } = firebase.auth;
-        const { ref, uploadBytes, getDownloadURL } = firebase.storage;
         
         console.log("Firebase initialized successfully.");
     } catch (error) {
@@ -181,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             contentList.prepend(contentDiv);
 
-            onSnapshot(collection(db, PUBLIC_MUSIC_FILES_PATH, contentId, 'comments'), (commentSnapshot) => {
+            db.collection(PUBLIC_MUSIC_FILES_PATH).doc(contentId).collection('comments').onSnapshot((commentSnapshot) => {
                 const commentListDiv = document.querySelector(`#comments-section-${contentId} .comment-list`);
                 if (commentListDiv) {
                     commentListDiv.innerHTML = '';
@@ -200,8 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Main Authentication State Listener ---
-    onAuthStateChanged(auth, async (user) => {
+    // --- Main Authentication State Listener (UPDATED) ---
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             userId = user.uid;
             userIdDisplay.textContent = userId;
@@ -217,9 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User signed in with ID:", userId);
             showView('feed');
 
-            const userDocRef = doc(db, USER_DOC_PATH(userId));
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists() && userDocSnap.data().avatarUrl) {
+            const userDocRef = db.collection(USER_DOC_PATH(userId)).doc(); // NOTE: Changed to .doc()
+            const userDocSnap = await userDocRef.get();
+            if (userDocSnap.exists && userDocSnap.data().avatarUrl) {
                 avatar.src = userDocSnap.data().avatarUrl;
             } else {
                 avatar.src = 'https://i.ibb.co/Ctnz36D/avatar-placeholder.png';
@@ -231,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             changeAvatarBtn.disabled = false;
             sendChatBtn.disabled = false;
 
-            onSnapshot(collection(db, USER_MUSIC_FILES_PATH(userId)), (querySnapshot) => {
+            db.collection(USER_MUSIC_FILES_PATH(userId)).onSnapshot((querySnapshot) => {
                 myLibraryList.innerHTML = '';
                 if (querySnapshot.empty) {
                     myLibraryList.innerHTML = '<p>Your library is empty. Upload some content!</p>';
@@ -272,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- Public Feed & Chat Listeners (always active) ---
-        onSnapshot(collection(db, PUBLIC_FEED_PATH), (querySnapshot) => {
+        db.collection(PUBLIC_FEED_PATH).onSnapshot((querySnapshot) => {
             const messageList = document.getElementById('messageList');
             messageList.innerHTML = '';
             querySnapshot.forEach((doc) => {
@@ -289,13 +284,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error listening to public feed:", error);
         });
 
-        onSnapshot(collection(db, PUBLIC_MUSIC_FILES_PATH), (querySnapshot) => {
+        db.collection(PUBLIC_MUSIC_FILES_PATH).onSnapshot((querySnapshot) => {
             renderPublicContent(querySnapshot.docs);
         }, (error) => {
             console.error("Error listening to public content feed:", error);
         });
 
-        onSnapshot(collection(db, PUBLIC_CHAT_PATH), (querySnapshot) => {
+        db.collection(PUBLIC_CHAT_PATH).onSnapshot((querySnapshot) => {
             chatMessages.innerHTML = '';
             querySnapshot.forEach((doc) => {
                 const messageData = doc.data();
@@ -339,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playNextVideo();
     }
     
-    // --- All Event Listeners ---
+    // --- All Event Listeners (UPDATED) ---
     if (ctaGetStartedBtn) {
         ctaGetStartedBtn.addEventListener('click', async () => {
             if (!auth) {
