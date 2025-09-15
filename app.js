@@ -85,24 +85,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupTab = document.getElementById('signupTab');
 
     // --- Firebase Initialization ---
-    const firebaseConfig = typeof window.__firebase_config !== 'undefined' ? JSON.parse(window.__firebase_config) : null;
     let app, auth, db, storage, userId;
 
-    if (firebaseConfig) {
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            storage = getStorage(app);
-            setLogLevel('debug');
-            console.log("Firebase initialized successfully.");
-        } catch (error) {
-            console.error("Firebase initialization failed:", error);
-            userIdDisplay.textContent = 'Config Error';
-        }
-    } else {
+    // This section is now much cleaner because the config is loaded from /__/firebase/init.js
+    // which your updated index.html now links to.
+    try {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        storage = getStorage(app);
+        setLogLevel('debug');
+        console.log("Firebase initialized successfully.");
+    } catch (error) {
+        console.error("Firebase initialization failed:", error);
         userIdDisplay.textContent = 'Config Error';
-        console.error("Firebase configuration is missing.");
     }
 
     // --- Core Functions ---
