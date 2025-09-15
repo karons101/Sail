@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainAppView = document.getElementById('mainAppView');
     const userIdDisplay = document.getElementById('userIdDisplay');
     const messageInput = document.getElementById('messageInput');
-    const postMessageBtn = document.getElementById('postMessageBtn');
+    const postMessageBtn = document = document.getElementById('postMessageBtn');
     const publicFileInput = document.getElementById('publicFileInput');
     const publicUploadBtn = document = document.getElementById('publicUploadBtn');
     const contentList = document.getElementById('contentList');
@@ -195,9 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Video Playlist Logic (CORRECTED) ---
     const videoPlaylist = [
-        '../assets/beauty_nature.mp4',
-        '../assets/music_video.mp4',
-        '../assets/nature.mp4',
+        '/assets/beauty_nature.mp4',
+        '/assets/music_video.mp4',
+        '/assets/nature.mp4',
     ];
     let currentVideoIndex = 0;
     
