@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const videoPlayer = document.getElementById('videoPlayer');
 
     // --- Firebase Initialization (UPDATED) ---
-    // The `firebase` object is now provided by the scripts from Firebase Hosting.
     let app, auth, db, storage, userId;
 
     try {
@@ -101,12 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Core Functions ---
     function showView(view) {
-        // Hide all views first
         [publicFeedView, profileView, chatView].forEach(v => v.style.display = 'none');
-        // Remove active class from all tabs
         [publicFeedTab, profileTab, chatTab].forEach(t => t.classList.remove('active'));
 
-        // Show the selected view and set the active tab
         if (view === 'feed') {
             publicFeedView.style.display = 'flex';
             publicFeedTab.classList.add('active');
@@ -214,6 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     if (backgroundVideo) {
+        // Start the video loop as soon as the DOM is ready
+        playNextVideo(); 
+        
+        // Listen for the 'ended' event to play the next video in the playlist
         backgroundVideo.addEventListener('ended', () => {
             currentVideoIndex++;
             if (currentVideoIndex >= videoPlaylist.length) {
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playNextVideo();
         });
     }
-
+    
     // --- Main Authentication State Listener (UPDATED) ---
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User signed in with ID:", userId);
             showView('feed');
 
-            // --- FIX 1: Correctly reference the user's document ---
+            // Correctly reference the user's document
             const userDocRef = db.collection('users').doc(userId);
             const userDocSnap = await userDocRef.get();
             if (userDocSnap.exists && userDocSnap.data().avatarUrl) {
@@ -631,7 +631,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const videoId = item.dataset.videoId;
                 const title = item.querySelector('.search-result-title').textContent;
                 
-                // Hide other players and show the YouTube player
                 playerContainer.style.display = 'none';
                 youtubePlayerDiv.style.display = 'block';
                 
