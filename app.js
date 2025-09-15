@@ -197,6 +197,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Video Playlist Logic (CORRECTED) ---
+    const videoPlaylist = [
+        'assets/beauty_nature.mp4',
+        'assets/music_video.mp4',
+        'assets/nature.mp4',
+    ];
+    let currentVideoIndex = 0;
+    
+    function playNextVideo() {
+        if (backgroundVideo && videoPlaylist.length > 0) {
+            backgroundVideo.src = videoPlaylist[currentVideoIndex];
+            backgroundVideo.load();
+            backgroundVideo.play();
+        }
+    }
+    
+    if (backgroundVideo) {
+        backgroundVideo.addEventListener('ended', () => {
+            currentVideoIndex++;
+            if (currentVideoIndex >= videoPlaylist.length) {
+                currentVideoIndex = 0;
+            }
+            playNextVideo();
+        });
+    }
+
     // --- Main Authentication State Listener (UPDATED) ---
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -207,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
             landingPage.style.display = 'none';
             mainAppView.style.display = 'flex';
 
+            // Pause the video when the user signs in
             if (backgroundVideo) {
                 backgroundVideo.pause();
             }
@@ -257,8 +284,10 @@ document.addEventListener('DOMContentLoaded', () => {
             signOutBtn.style.display = 'none';
             landingPage.style.display = 'flex';
             mainAppView.style.display = 'none';
+
+            // Start playing the video when the user signs out
             if (backgroundVideo) {
-                backgroundVideo.play();
+                playNextVideo();
             }
 
             publicUploadBtn.disabled = true;
@@ -310,33 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Video Playlist Logic (already correct) ---
-    const videoPlaylist = [
-        'assets/beauty_nature.mp4',
-        'assets/music_video.mp4',
-        'assets/nature.mp4',
-    ];
-    let currentVideoIndex = 0;
-    
-    function playNextVideo() {
-        if (backgroundVideo && videoPlaylist.length > 0) {
-            backgroundVideo.src = videoPlaylist[currentVideoIndex];
-            backgroundVideo.load();
-            backgroundVideo.play();
-        }
-    }
-    
-    if (backgroundVideo) {
-        backgroundVideo.addEventListener('ended', () => {
-            currentVideoIndex++;
-            if (currentVideoIndex >= videoPlaylist.length) {
-                currentVideoIndex = 0;
-            }
-            playNextVideo();
-        });
-        playNextVideo();
-    }
-    
     // --- All Event Listeners (UPDATED) ---
     if (ctaGetStartedBtn) {
         ctaGetStartedBtn.addEventListener('click', async () => {
