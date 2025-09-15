@@ -45,10 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const publicFileInput = document.getElementById('publicFileInput');
     const publicUploadBtn = document.getElementById('publicUploadBtn');
     const contentList = document.getElementById('contentList');
-    const playerContainer = document.getElementById('playerContainer');
-    const nowPlayingTitle = document.getElementById('nowPlayingTitle');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const videoPlayer = document.getElementById('videoPlayer');
     const publicFeedTab = document.getElementById('publicFeedTab');
     const profileTab = document.getElementById('profileTab');
     const chatTab = document.getElementById('chatTab');
@@ -81,6 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginTab = document.getElementById('loginTab');
     const signupTab = document.getElementById('signupTab');
 
+    // --- DOM Queries for the new media player section ---
+    const playerContainer = document.getElementById('playerContainer');
+    const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const videoPlayer = document.getElementById('videoPlayer');
+
     // --- Firebase Initialization (UPDATED) ---
     // The `firebase` object is now provided by the scripts from Firebase Hosting.
     let app, auth, db, storage, userId;
@@ -106,13 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show the selected view and set the active tab
         if (view === 'feed') {
-            publicFeedView.style.display = 'block';
+            publicFeedView.style.display = 'flex';
             publicFeedTab.classList.add('active');
         } else if (view === 'profile') {
-            profileView.style.display = 'block';
+            profileView.style.display = 'flex';
             profileTab.classList.add('active');
         } else if (view === 'chat') {
-            chatView.style.display = 'block';
+            chatView.style.display = 'flex';
             chatTab.classList.add('active');
         }
     }
@@ -176,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             contentList.prepend(contentDiv);
 
-            db.collection(PUBLIC_MUSIC_FILES_PATH).doc(contentId).collection('comments').onSnapshot((commentSnapshot) => {
+            db.collection(PUBLIC_MUSIC_FILES_PATH).doc(contentId).collection('comments').orderBy('createdAt', 'desc').onSnapshot((commentSnapshot) => {
                 const commentListDiv = document.querySelector(`#comments-section-${contentId} .comment-list`);
                 if (commentListDiv) {
                     commentListDiv.innerHTML = '';
@@ -212,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log("User signed in with ID:", userId);
             showView('feed');
 
-            const userDocRef = db.collection(USER_DOC_PATH(userId)).doc(); // NOTE: Changed to .doc()
+            // --- FIX 1: Correctly reference the user's document ---
+            const userDocRef = db.collection('users').doc(userId);
             const userDocSnap = await userDocRef.get();
             if (userDocSnap.exists && userDocSnap.data().avatarUrl) {
                 avatar.src = userDocSnap.data().avatarUrl;
@@ -267,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- Public Feed & Chat Listeners (always active) ---
-        db.collection(PUBLIC_FEED_PATH).onSnapshot((querySnapshot) => {
+        db.collection(PUBLIC_FEED_PATH).orderBy('createdAt', 'desc').onSnapshot((querySnapshot) => {
             const messageList = document.getElementById('messageList');
             messageList.innerHTML = '';
             querySnapshot.forEach((doc) => {
@@ -284,13 +287,13 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("Error listening to public feed:", error);
         });
 
-        db.collection(PUBLIC_MUSIC_FILES_PATH).onSnapshot((querySnapshot) => {
+        db.collection(PUBLIC_MUSIC_FILES_PATH).orderBy('createdAt', 'desc').onSnapshot((querySnapshot) => {
             renderPublicContent(querySnapshot.docs);
         }, (error) => {
             console.error("Error listening to public content feed:", error);
         });
 
-        db.collection(PUBLIC_CHAT_PATH).onSnapshot((querySnapshot) => {
+        db.collection(PUBLIC_CHAT_PATH).orderBy('createdAt', 'desc').onSnapshot((querySnapshot) => {
             chatMessages.innerHTML = '';
             querySnapshot.forEach((doc) => {
                 const messageData = doc.data();
@@ -307,11 +310,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- Video Playlist Logic ---
+    // --- Video Playlist Logic (already correct) ---
     const videoPlaylist = [
         'assets/beauty_nature.mp4',
+        'assets/music_video.mp4',
         'assets/nature.mp4',
-        'assets/music_video.mp4'
     ];
     let currentVideoIndex = 0;
     
@@ -625,8 +628,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item) {
                 const videoId = item.dataset.videoId;
                 const title = item.querySelector('.search-result-title').textContent;
+                
+                // Hide other players and show the YouTube player
                 playerContainer.style.display = 'none';
                 youtubePlayerDiv.style.display = 'block';
+                
                 nowPlayingTitle.textContent = `Now Playing: ${title}`;
                 if (youtubePlayer && youtubePlayer.loadVideoById) {
                     youtubePlayer.loadVideoById(videoId);
