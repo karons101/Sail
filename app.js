@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('messageInput');
     const postMessageBtn = document.getElementById('postMessageBtn');
     const publicFileInput = document.getElementById('publicFileInput');
-    const publicUploadBtn = document.getElementById('publicUploadBtn');
+    const publicUploadBtn = document = document.getElementById('publicUploadBtn');
     const contentList = document.getElementById('contentList');
     const publicFeedTab = document.getElementById('publicFeedTab');
     const profileTab = document.getElementById('profileTab');
@@ -195,9 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Video Playlist Logic (CORRECTED) ---
     const videoPlaylist = [
-        'assets/beauty_nature.mp4',
-        'assets/music_video.mp4',
-        'assets/nature.mp4',
+        '../assets/beauty_nature.mp4',
+        '../assets/music_video.mp4',
+        '../assets/nature.mp4',
     ];
     let currentVideoIndex = 0;
     
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 chatMessages.prepend(messageDiv);
             });
         }, (error) => {
-            console.error("Error listening to public chat:", error);
+                console.error("Error listening to public chat:", error);
         });
     });
 
