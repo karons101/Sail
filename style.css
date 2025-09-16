@@ -532,3 +532,75 @@ header {
         flex-wrap: nowrap;
     }
 }
+
+/* --- New Styles to Fix Layout & Responsiveness --- */
+
+/* Ensures the main content areas have consistent sizing to prevent jumping */
+.app-container, #mainAppView, .tab-view {
+    position: absolute; /* Takes containers out of normal document flow */
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh; /* Ensures a minimum height */
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* New responsive styles for the user profile page */
+.user-profile {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically on mobile */
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column; /* Stack buttons vertically on mobile */
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Responsive grid for the public feed and user library */
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Auto-fit columns */
+    gap: 1rem;
+    padding: 1rem;
+    width: 100%;
+}
+
+.content-card {
+    background-color: #2c3e50;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+/* Media Queries for Mobile responsiveness */
+@media (max-width: 768px) {
+    .main-tabs {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tab-button {
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .user-profile, .profile-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr; /* Single column on small screens */
+    }
+}

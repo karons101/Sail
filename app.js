@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mediaUploadInput = document.getElementById('media-upload-input');
     
     // --- Initialize Firebase objects ---
-    // Make sure these match the variables in your index.html
     const auth = getAuth();
     const storage = getStorage();
     
@@ -138,17 +137,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Firebase Authentication Listeners ---
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            // User is signed in
+            // User is signed in. Let's show the main app.
             console.log('User signed in:', user.uid);
             showMainApp(user);
         } else {
-            // User is signed out
+            // User is signed out. Hide the main app.
             console.log('User is signed out.');
             hideMainApp();
         }
     });
-    
+
     // --- Event Listeners ---
+    // Change this listener to always show the modal, regardless of auth state
     if (ctaGetStartedBtn) {
         ctaGetStartedBtn.addEventListener('click', showModal);
     }
