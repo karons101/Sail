@@ -9,18 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9060607867384539" crossorigin="anonymous"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
-    
-    <script src="/__/firebase/8.6.8/firebase-app.js"></script>
-    <script src="/__/firebase/8.6.8/firebase-auth.js"></script>
-    <script src="/__/firebase/8.6.8/firebase-firestore.js"></script>
-    <script src="/__/firebase/8.6.8/firebase-storage.js"></script>
-    <script src="/__/firebase/init.js"></script>
-    <script src="app.js"></script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
+    
     <div id="landing-page" class="app-container">
         <h1>Yellow>Sail</h1>
         <svg class="ship-logo" viewBox="0 0 300 100" xmlns="http://www.w3.org/2000/svg">
@@ -46,119 +38,119 @@
         </svg>
         <p class="landing-text">Enjoy Free Music, Videos & social entertainment.</p>
         <div class="demo-section">
-            <video id="backgroundVideo" src="assets/beauty_nature.mp4" loop autoplay muted></video>
-            <video id="backgroundVideo" src="assets/music_video.mp4" loop autoplay muted></video>
-            <video id="backgroundVideo" src="assets/nature.mp4" loop autoplay muted></video>
+            <video id="backgroundVideo" muted src="assets/beauty_nature.mp4"></video>
         </div>
         <button id="cta-get-started" class="access-btn">Get Started</button>
     </div>
 
-    <div id="mainAppView" style="display:none;">
-        <div class="content-container">
-            <div>
-                <span id="userIdDisplay">Guest</span>
-                <button id="authBtn">Login</button>
-                <button id="signOutBtn" style="display:none;">Sign Out</button>
-            </div>
-            <div class="tabs">
-                <button id="publicFeedTab" class="active">Feed</button>
-                <button id="profileTab">Profile</button>
-                <button id="chatTab">Chat</button>
-            </div>
-            <div id="publicFeedView" class="tab-content" style="display: flex;">
-                <input type="file" id="publicFileInput" accept="audio/*,video/*">
-                <button id="publicUploadBtn">Upload to Public Feed</button>
+    <div id="mainAppView" class="hidden">
+        <header>
+            <nav class="main-tabs">
+                <button id="publicFeedTab" class="tab-button active">Public Feed</button>
+                <button id="profileTab" class="tab-button">Profile</button>
+                <button id="chatTab" class="tab-button">Chat</button>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <section id="publicFeedView" class="tab-view">
                 <h2>Public Feed</h2>
-                <div class="external-search">
-                    <h3>YouTube Search</h3>
-                    <div class="search-container">
-                        <input type="text" id="youtubeSearchInput" class="search-bar" placeholder="Search YouTube videos...">
-                        <button id="youtubeSearchBtn">Search</button>
+                <div class="content-grid">
+                    <div class="content-card">
+                        <img src="https://via.placeholder.com/300x200" alt="Video Thumbnail">
+                        <div class="content-info">
+                            <h4>Featured Video Title</h4>
+                            <div class="social-actions">
+                                <button class="like-btn"><i class="fa-solid fa-heart"></i> <span>25</span></button>
+                                <button class="share-btn"><i class="fa-solid fa-share-alt"></i></button>
+                                <button class="comment-btn"><i class="fa-solid fa-comment"></i></button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="search-results" id="youtubeResults"></div>
-                    <div id="youtubePlayer" style="display:none;"></div>
                 </div>
-                <div class="message-form">
-                    <h2>Public Feed Messages</h2>
-                    <textarea id="messageInput" placeholder="Write your message..."></textarea>
-                    <button id="postMessageBtn">Post to Public Feed</button>
+            </section>
+
+            <section id="profileView" class="tab-view hidden">
+                <div class="user-profile">
+                    <div class="profile-header">
+                        <img id="user-avatar" src="assets/user-avatar.png" alt="User Avatar" class="avatar">
+                        <h2 id="user-name">Hello, User!</h2>
+                    </div>
+                    <div class="profile-actions">
+                        <input type="file" id="media-upload-input" accept="video/*,audio/*" class="hidden">
+                        <button id="upload-media-btn" class="action-btn">
+                            <i class="fa-solid fa-upload"></i> Upload Media
+                        </button>
+                        <p class="upload-note">Videos & Music in one place!</p>
+                    </div>
                 </div>
-                <div class="message-list" id="messageList"></div>
-                <div class="content-section">
-                    <h2>User-Uploaded Content</h2>
-                    <div id="contentList"></div>
+
+                <div class="user-library">
+                    <h3>My Library</h3>
+                    <div class="content-grid" id="user-media-grid">
+                        <div class="content-card">
+                            <img src="https://via.placeholder.com/300x200" alt="My Video Thumbnail">
+                            <div class="content-info">
+                                <h4>My Uploaded Video</h4>
+                                <div class="social-actions">
+                                    <button class="like-btn"><i class="fa-solid fa-heart"></i> <span>5</span></button>
+                                    <button class="share-btn"><i class="fa-solid fa-share-alt"></i></button>
+                                    <button class="comment-btn"><i class="fa-solid fa-comment"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="ads-container">
-                    <ins class="adsbygoogle"
-                        style="display:block"
-                        data-ad-client="ca-pub-9060607867384539"
-                        data-ad-slot="1234567890"
-                        data-ad-format="auto"
-                        data-full-width-responsive="true"></ins>
+            </section>
+
+            <section id="chatView" class="tab-view hidden">
+                <h2>Chat</h2>
+                <div class="chat-container">
+                    <div class="chat-log">
+                        <div class="message received">
+                            <p>Hi there! Welcome to the chat.</p>
+                        </div>
+                        <div class="message sent">
+                            <p>Hey, glad to be here!</p>
+                        </div>
+                    </div>
+                    <form class="chat-input-form">
+                        <input type="text" placeholder="Type a message..." required>
+                        <button type="submit">Send</button>
+                    </form>
                 </div>
+            </section>
+        </main>
+    </div>
+    
+    <div id="authModal" class="modal hidden">
+        <div class="modal-content">
+            <button id="closeModalBtn" class="modal-close-btn">&times;</button>
+            <h2 class="modal-heading">Welcome to Yellow>Sail</h2>
+            <div class="auth-tabs">
+                <button id="loginTab" class="auth-tab active">Log In</button>
+                <button id="signupTab" class="auth-tab">Sign Up</button>
             </div>
-        
-            <div id="profileView" class="tab-content" style="display:none;">
-                <h2>My Profile</h2>
-                <img id="avatar" class="profile-avatar" src="https://placehold.co/100x100/3e3e3e/fff?text=Avatar" alt="User Avatar">
-                <input type="file" id="avatarInput" style="display: none;">
-                <button id="changeAvatarBtn" class="profile-upload-btn">Change Avatar</button>
-                <div class="upload-form">
-                    <h2>Upload to My Library</h2>
-                    <input type="file" id="libraryFileInput" accept="audio/*,video/*">
-                    <button id="libraryUploadBtn">Upload</button>
+            <form id="loginForm" class="auth-form">
+                <input type="email" id="loginEmail" placeholder="Email" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <div class="form-options">
+                    <label>
+                        <input type="checkbox" id="rememberMe"> Remember Me
+                    </label>
+                    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
                 </div>
-                <div class="content-section">
-                    <h2>My Library</h2>
-                    <div id="myLibraryList"></div>
-                </div>
-            </div>
-        
-            <div id="chatView" class="tab-content" style="display:none;">
-                <h2>Public Chat</h2>
-                <div id="chatMessages" class="chat-messages"></div>
-                <div class="chat-input-container">
-                    <input type="text" id="chatInput" class="chat-input" placeholder="Say something nice...">
-                    <button id="sendChatBtn">Send</button>
-                </div>
-            </div>
+                <button type="submit" class="auth-submit-btn">Log In</button>
+            </form>
+            <form id="signupForm" class="auth-form hidden">
+                <input type="email" id="signupEmail" placeholder="Email" required>
+                <input type="password" id="signupPassword" placeholder="Password" required>
+                <button type="submit" class="auth-submit-btn">Sign Up</button>
+            </form>
+            <button id="anonymousSignInBtn" class="anonymous-btn">Sign In Anonymously</button>
         </div>
     </div>
     
-    <div id="authModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50 modal-enter-from">
-        <div id="modal-content" class="bg-[var(--element-dark)] text-[var(--text-light)] rounded-xl shadow-2xl p-8 max-w-sm w-full mx-4 transform modal-content-enter-from transition-transform">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex w-full bg-[var(--darker-input)] rounded-lg p-1">
-                    <button id="loginTab" class="flex-1 py-2 px-4 text-center rounded-lg transition-colors font-medium text-gray-400 hover:bg-gray-700">Log In</button>
-                    <button id="signupTab" class="flex-1 py-2 px-4 text-center rounded-lg transition-colors font-medium text-gray-400 hover:bg-gray-700">Sign Up</button>
-                </div>
-                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-200 ml-4 transition-colors">
-                    <span style="font-size:1.5em;">&times;</span>
-                </button>
-            </div>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label for="loginEmail" class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="loginEmail" class="w-full px-4 py-2 bg-[var(--darker-input)] text-gray-200 border border-gray-600 rounded-lg" placeholder="your.email@example.com">
-                </div>
-                <div>
-                    <label for="loginPassword" class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="loginPassword" class="w-full px-4 py-2 bg-[var(--darker-input)] text-gray-200 border border-gray-600 rounded-lg" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full modal-submit-btn">Log In</button>
-            </form>
-            <form id="signupForm" class="space-y-4 hidden">
-                <div>
-                    <label for="signupEmail" class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="signupEmail" class="w-full px-4 py-2 bg-[var(--darker-input)] text-gray-200 border border-gray-600 rounded-lg" placeholder="your.email@example.com">
-                </div>
-                <div>
-                    <label for="signupPassword" class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="signupPassword" class="w-full px-4 py-2 bg-[var(--darker-input)] text-gray-200 border border-gray-600 rounded-lg" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full modal-submit-btn">Sign Up</button>
-            </form>
-        </div>
-    </div>
+    <script src="app.js"></script>
 </body>
 </html>
