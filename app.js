@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- Event Listeners ---
-    // Change this listener to always show the modal, regardless of auth state
     if (ctaGetStartedBtn) {
         ctaGetStartedBtn.addEventListener('click', showModal);
     }
