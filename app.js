@@ -6,11 +6,11 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-
 // --- Your Firebase Configuration ---
 // Paste your unique firebaseConfig object here.
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    apiKey: "AIzaSyDE5CLei6LxQ3vupIdQcRq2aBp2xLypgyY",
+    authDomain: "yellowsail-app.firebaseapp.com",
+    projectId: "yellowsail-app",
+    storageBucket: "yellowsail-app.firebasestorage.app",
+    messagingSenderId: "1:434797371517:web:87238d47fe3761d0761114",
     appId: "YOUR_APP_ID"
 };
 
