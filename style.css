@@ -18,33 +18,29 @@
 body {
     background-color: var(--dark-bg);
     color: var(--light-text);
-    overflow: hidden;
-    height: 100vh;
+    /* Allow the body to scroll naturally */
+    min-height: 100vh;
     width: 100vw;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column; /* Stack pages vertically */
 }
 
 /* Base Styles for Pages */
 .app-container, #mainAppView, .modal {
     width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
+    /* No absolute positioning - pages now stack in the document flow */
+    min-height: 100vh; /* Make sure each page is at least full height */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     transition: opacity 0.5s ease;
+    flex-shrink: 0; /* Prevents pages from shrinking below their size */
 }
 
 /* Visibility State */
 .hidden {
-    opacity: 0;
-    pointer-events: none;
-    z-index: -1;
+    display: none; /* Hides the element completely, preventing layout issues */
 }
 
 /* Landing Page Specifics */
@@ -53,7 +49,7 @@ body {
 }
 
 h1 {
-    font-size: 3rem;
+    font-size: clamp(2rem, 8vw, 3rem); /* Make font size responsive */
     font-weight: 700;
     text-shadow: 2px 2px 4px var(--shadow-color);
     z-index: 10;
@@ -112,7 +108,7 @@ h1 {
 /* Main Application View Styles */
 #mainAppView {
     justify-content: flex-start;
-    padding-top: 2rem;
+    padding-top: 0; /* Removed this margin as header is now fixed */
     z-index: 20;
     position: relative;
     overflow-y: auto;
@@ -123,7 +119,7 @@ header {
     background-color: var(--secondary-color);
     padding: 1rem;
     box-shadow: 0 2px 5px var(--shadow-color);
-    position: fixed;
+    position: fixed; /* Keep header visible at all times */
     top: 0;
     left: 0;
     z-index: 100;
@@ -155,7 +151,7 @@ header {
     width: 100%;
     max-width: 1200px;
     padding: 1rem;
-    margin-top: 5rem;
+    margin-top: 5rem; /* Add top margin to make space for the fixed header */
 }
 
 .tab-view {
@@ -170,6 +166,9 @@ header {
     gap: 1.5rem;
     padding: 2rem;
     text-align: center;
+    background-color: rgba(0, 0, 0, 0.2); /* Added background for better separation */
+    border-radius: 10px;
+    margin-bottom: 2rem;
 }
 
 .profile-actions {
