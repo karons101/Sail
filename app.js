@@ -1,7 +1,7 @@
 // --- ALL IMPORTS AT THE VERY TOP OF THE FILE ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 // --- Your Firebase Configuration ---
 // Paste your unique firebaseConfig object here.
@@ -10,8 +10,8 @@ const firebaseConfig = {
     authDomain: "yellowsail-app.firebaseapp.com",
     projectId: "yellowsail-app",
     storageBucket: "yellowsail-app.firebasestorage.app",
-    messagingSenderId: "1:434797371517:web:87238d47fe3761d0761114",
-    appId: "YOUR_APP_ID"
+    messagingSenderId: "434797371517",
+    appId: "1:434797371517:web:87238d47fe3761d0761114"
 };
 
 // --- Initialize Firebase objects ---
@@ -116,9 +116,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             userName.textContent = user.isAnonymous ? "Hello, Anonymous!" : `Hello, ${user.email.split('@')[0]}!`;
             
+            // This is the code that creates the sign-out button
             const signOutBtn = document.createElement('button');
             signOutBtn.textContent = 'Sign Out';
             signOutBtn.classList.add('action-btn');
+            signOutBtn.classList.add('sign-out-btn'); // A new class for better targeting
             signOutBtn.addEventListener('click', () => {
                 signOut(auth).then(() => {
                     console.log('User signed out.');
@@ -128,7 +130,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
 
-            const existingSignOutBtn = profileActionsContainer.querySelector('.action-btn.sign-out-btn');
+            // This ensures we only have one sign-out button
+            const existingSignOutBtn = profileActionsContainer.querySelector('.sign-out-btn');
             if (existingSignOutBtn) {
                 existingSignOutBtn.remove();
             }
@@ -203,19 +206,32 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Anonymous sign-in failed. " + error.message);
         }
     });
-
-    if (uploadMediaBtn) {
-        uploadMediaBtn.addEventListener('click', () => {
-            mediaUploadInput.click();
-        });
-    }
-
+    
+    // Firebase Storage Upload logic
     if (mediaUploadInput) {
         mediaUploadInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                console.log(`Ready to upload file: ${file.name}`);
-                alert(`File selected: ${file.name}. Upload functionality coming soon!`);
+                const storageRef = ref(storage, 'user_media/' + file.name);
+
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload is ' + progress + '% done');
+                    },
+                    (error) => {
+                        console.error("Upload failed:", error);
+                        alert("Upload failed. " + error.message);
+                    },
+                    () => {
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                            console.log('File available at', downloadURL);
+                            alert("File uploaded successfully! URL: " + downloadURL);
+                        });
+                    }
+                );
             }
         });
     }
